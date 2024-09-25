@@ -1,0 +1,127 @@
+{
+	"info": {
+		"_postman_id": "54764912-1bfe-47de-9037-1719541f47c5",
+		"name": "apis_preqin_task",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24568913",
+		"_collection_link": "https://dpsidev.postman.co/workspace/DEV-Work-Space~94fcebae-ca22-4f64-8032-9d8a067ac7ea/collection/24568913-54764912-1bfe-47de-9037-1719541f47c5?action=share&source=collection_link&creator=24568913"
+	},
+	"item": [
+		{
+			"name": "http://192.168.123.114:5500/data/investors_details_all",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"pm.test(\"The response has all properties\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.response.to.have.status(200)\r",
+							"    pm.expect(responseJson).to.be.an(\"object\")\r",
+							"    pm.expect(responseJson.DATA).to.be.an(\"array\");\r",
+							"\r",
+							"    var arr =responseJson.DATA;\r",
+							"    for (var i = 0; i < arr.length; i++)\r",
+							"    {\r",
+							"\r",
+							"            pm.test(\"Investor_Id should be Integer \", function () {\r",
+							"                \r",
+							"                pm.expect(arr[i].Investor_Id).to.be.a(\"number\");\r",
+							"\r",
+							"            });\r",
+							"        \r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.123.114:5500/data/investors_details_all",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"123",
+						"114"
+					],
+					"port": "5500",
+					"path": [
+						"data",
+						"investors_details_all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://192.168.123.114:5500/data/investors_details?investorId=1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"pm.test(\"The response has all properties\", () => {\r",
+							"    const responseJson = pm.response.json();\r",
+							"    pm.response.to.have.status(200)\r",
+							"    pm.expect(responseJson).to.be.an(\"object\")\r",
+							"    pm.expect(responseJson.DATA).to.be.an(\"array\");\r",
+							"\r",
+							"    var arr =responseJson.DATA;\r",
+							"    for (var i = 0; i < arr.length; i++)\r",
+							"    {\r",
+							"\r",
+							"            pm.test(\"Investment_Details_Id should be Integer \", function () {\r",
+							"                \r",
+							"                pm.expect(arr[i].Investment_Details_Id).to.be.a(\"number\");\r",
+							"\r",
+							"            });\r",
+							"        \r",
+							"    }\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://192.168.123.114:5500/data/investors_details?investorId=1",
+					"protocol": "http",
+					"host": [
+						"192",
+						"168",
+						"123",
+						"114"
+					],
+					"port": "5500",
+					"path": [
+						"data",
+						"investors_details"
+					],
+					"query": [
+						{
+							"key": "investorId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

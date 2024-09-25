@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investors</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        #assetClassBoxes {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .asset-class {
+            border: 1px solid #007BFF;
+            padding: 10px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            transition: background-color 0.3s;
+        }
+
+        .asset-class:hover {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .asset-total {
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Investors</h1>
+    
+    <table id="investorTable">
+        <thead>
+            <tr>
+                <th>Investor Name</th>
+                <th>Type</th>
+                <th>Address</th>
+                <th>Date Added</th>
+                <th>Total Commitments</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="commitmentSection" style="display:none;">
+        <h2 id="commitmentTitle"></h2>
+        <div id="assetClassBoxes">
+            <div class="asset-class" data-class="All">All<br><span class="asset-total" id="totalAll">0 B </span></div>
+            <div class="asset-class" data-class="Hedge Funds">Hedge Funds<br><span class="asset-total" id="totalHedgeFunds">0 B </span></div>
+            <div class="asset-class" data-class="Private Equity">Private Equity<br><span class="asset-total" id="totalPrivateEquity">0 B </span></div>
+            <div class="asset-class" data-class="Infrastructure">Infrastructure<br><span class="asset-total" id="totalInfrastructure">0 B </span></div>
+            <div class="asset-class" data-class="Natural Resources">Natural Resources<br><span class="asset-total" id="totalNaturalResources">0 B </span></div>
+            <div class="asset-class" data-class="Real Estate">Real Estate<br><span class="asset-total" id="totalRealEstate">0 B </span></div>
+            <div class="asset-class" data-class="Private Debt">Private Debt<br><span class="asset-total" id="totalPrivateDebt">0 B </span></div>
+        </div>
+        
+        <table id="commitmentTable">
+            <thead>
+                <tr>
+                    <th>Asset Class</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const investorsApiUrl = 'http://192.168.123.114:5500/data/investors_details_all';
+        const commitmentsApiUrl = 'http://192.168.123.114:5500/data/investors_details';
+
+        async function fetchInvestors() {
+            const response = await fetch(investorsApiUrl);
+            const data = await response.json();
+            return data.DATA;
+        }
+
+        async function fetchCommitments(investorId) {
+            const response = await fetch(`${commitmentsApiUrl}?investorId=${investorId}`);
+            const data = await response.json();
+            return data.DATA;
+        }
+
+        async function displayInvestors() {
+            const investors = await fetchInvestors();
+            const tableBody = document.getElementById('investorTable').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            investors.forEach(investor => {
+                const row = tableBody.insertRow();
+                const totalInBillions = (investor.Total_Investment_Amount / 1e9).toFixed(1);
+                row.insertCell(0).innerHTML = `<a href="#" class="investor-link" data-id="${investor.Investor_Id}">${investor.Investor_Name}</a>`;
+                row.insertCell(1).innerText = investor.Investory_Type;
+                row.insertCell(2).innerText = investor.Investor_Address;
+                row.insertCell(3).innerText = investor.Investor_Date_Added;
+                row.insertCell(4).innerText = totalInBillions + 'B';
+            });
+        }
+
+        function showCommitmentDetails(name, commitments) {
+            const commitmentSection = document.getElementById('commitmentSection');
+            const commitmentTitle = document.getElementById('commitmentTitle');
+            const commitmentTableBody = document.getElementById('commitmentTable').getElementsByTagName('tbody')[0];
+
+            commitmentTitle.innerText = `Commitments Details for ${name}`;
+            commitmentTableBody.innerHTML = '';
+            
+            const assetClassTotals = {
+                "All": 0,
+                "Hedge Funds": 0,
+                "Private Equity": 0,
+                "Infrastructure": 0,
+                "Natural Resources": 0,
+                "Real Estate": 0,
+                "Private Debt": 0
+            };
+
+            commitments.forEach(commitment => {
+                const row = commitmentTableBody.insertRow();
+                row.insertCell(0).innerText = commitment.Commitment_Asset_Class_Name;
+                row.insertCell(1).innerText = (commitment.Investment_Amount / 1e6).toFixed(1) + "M";
+                row.insertCell(2).innerText = commitment.Commitment_Currency;
+
+                assetClassTotals[commitment.Commitment_Asset_Class_Name] += commitment.Investment_Amount;
+                assetClassTotals["All"] += commitment.Investment_Amount; // Track total for All
+            });
+
+            Object.keys(assetClassTotals).forEach(assetClass => {
+                const totalInMillions = (assetClassTotals[assetClass] / 1e6).toFixed(2);
+                document.getElementById(`total${assetClass.replace(/ /g, '')}`).innerText = totalInMillions + 'M';
+            });
+
+            commitmentSection.style.display = "block";
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayInvestors();
+
+            document.getElementById('investorTable').addEventListener('click', async (event) => {
+                if (event.target.classList.contains('investor-link')) {
+                    const investorId = event.target.getAttribute('data-id');
+                    const commitments = await fetchCommitments(investorId);
+                    showCommitmentDetails(event.target.innerText, commitments);
+                }
+            });
+
+            // Asset class filtering
+            const assetClassBoxes = document.querySelectorAll('.asset-class');
+            assetClassBoxes.forEach(box => {
+                box.addEventListener('click', () => {
+                    const selectedClass = box.getAttribute('data-class');
+                    const commitmentTableBody = document.getElementById('commitmentTable').getElementsByTagName('tbody')[0];
+                    const rows = commitmentTableBody.getElementsByTagName('tr');
+                    let totalVal = 0;
+
+                    Array.from(rows).forEach(row => {
+                        if (selectedClass === 'All' || row.cells[0].innerText === selectedClass) {
+                            row.style.display = '';
+                            totalVal += parseInt(row.cells[1].innerText.replace(/M/g, '').trim() * 1e6); // Convert back to original amount
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    const totalInMillions = (totalVal / 1e6).toFixed(2);
+                    document.getElementById(`total${selectedClass.replace(/ /g, '')}`).innerText = totalInMillions + 'M';
+
+                    assetClassBoxes.forEach(b => b.classList.remove('active'));
+                    box.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
